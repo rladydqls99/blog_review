@@ -1,0 +1,175 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+[Fast API Rules]
+# Cursor Rules for FastAPI Learning Project
+
+## Core Principles
+
+### 1. Educational Approach
+- **Always provide code explanations**: Every code suggestion must include clear explanations of what the code does and why it's written that way
+- **Prefer basic patterns over advanced techniques**: Use fundamental, well-established patterns that are easy to understand and learn from
+- **Include learning context**: Explain Python/FastAPI concepts as they're introduced
+- **Provide step-by-step guidance**: Break down complex implementations into smaller, digestible steps
+
+### 2. Code Quality Standards
+
+#### Readability First
+- Use descriptive variable and function names
+- Write self-documenting code with clear intent
+- Include type hints for all functions and variables
+- Add docstrings to all functions and classes
+- Keep functions small and focused (max 20 lines when possible)
+
+#### Single Responsibility Principle
+- Each function should have one clear purpose
+- Each class should have one reason to change
+- Separate concerns into different modules/files
+- Avoid mixing business logic with API routing logic
+
+## Python & FastAPI Specific Guidelines
+
+### 1. Project Structure
+```
+project/
+├── app/
+│   ├── __init__.py
+│   ├── main.py          # FastAPI app initialization
+│   ├── models/          # Pydantic models
+│   ├── routers/         # API route handlers
+│   ├── services/        # Business logic
+│   ├── database/        # Database configuration
+│   └── utils/           # Utility functions
+├── tests/
+└── requirements.txt
+```
+
+### 2. FastAPI Patterns
+
+#### Route Handlers
+- Keep route handlers thin - delegate to service layers
+- Use dependency injection for common functionality
+- Return Pydantic models for consistent API responses
+- Include proper HTTP status codes
+
+#### Error Handling
+- Use FastAPI's HTTPException for API errors
+- Create custom exception handlers for application-specific errors
+- Always provide meaningful error messages
+- Log errors appropriately
+
+#### Request/Response Models
+- Use Pydantic models for all request/response data
+- Separate input/output models when needed
+- Include validation rules in models
+- Use descriptive field names and add Field descriptions
+
+### 3. Code Examples and Explanations
+
+#### Always Include:
+1. **What the code does** - High-level purpose
+2. **How it works** - Step-by-step explanation
+3. **Why this approach** - Reasoning behind design choices
+4. **Key concepts** - Python/FastAPI features being used
+
+#### Example Format:
+```python
+# What: This function creates a new user in the database
+# How: It validates input, checks for duplicates, and saves to DB
+# Why: Separated from route handler for better testability
+# Concepts: Dependency injection, Pydantic validation, async/await
+
+async def create_user(user_data: UserCreate, db: Session = Depends(get_db)) -> User:
+    """
+    Create a new user in the database.
+    
+    Args:
+        user_data: User information from request
+        db: Database session dependency
+    
+    Returns:
+        Created user object
+    
+    Raises:
+        HTTPException: If user already exists
+    """
+    # Check if user already exists
+    existing_user = db.query(User).filter(User.email == user_data.email).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="User already exists")
+    
+    # Create new user
+    db_user = User(**user_data.dict())
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    
+    return db_user
+```
+
+### 4. Learning Progression
+
+#### Start Simple
+- Begin with basic CRUD operations
+- Use in-memory data before databases
+- Implement one feature at a time
+- Focus on understanding before optimizing
+
+#### Gradually Introduce Concepts
+1. Basic routing and request handling
+2. Pydantic models and validation
+3. Database integration
+4. Authentication and authorization
+5. Error handling and logging
+6. Testing and documentation
+
+### 5. Code Review Checklist
+
+Before suggesting any code, ensure:
+- [ ] Code is explained clearly
+- [ ] Uses basic, fundamental patterns
+- [ ] Follows single responsibility principle
+- [ ] Includes proper type hints
+- [ ] Has descriptive names
+- [ ] Includes error handling
+- [ ] Is testable
+- [ ] Follows FastAPI best practices
+
+### 6. Common Patterns to Avoid
+- Overly complex decorators or metaclasses
+- Advanced async patterns for beginners
+- Complex database relationships initially
+- Microservice patterns in early stages
+- Heavy use of third-party libraries
+
+### 7. Common Patterns to Encourage
+- Simple function composition
+- Clear separation of concerns
+- Explicit dependency injection
+- Straightforward error handling
+- Basic async/await usage
+- Standard HTTP status codes
+- Simple data validation
+
+## Implementation Notes
+
+### When Providing Code:
+1. Start with the simplest working version
+2. Explain each line or block of code
+3. Mention alternatives and when to use them
+4. Include common pitfalls and how to avoid them
+5. Suggest next steps for learning
+
+### When Refactoring:
+1. Explain what's being changed and why
+2. Show before/after comparisons
+3. Highlight the benefits of the refactoring
+4. Maintain backward compatibility when possible
+
+### For Debugging:
+1. Explain the debugging process
+2. Show how to read error messages
+3. Demonstrate using print statements and logging
+4. Teach systematic problem-solving approaches
