@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blog Review</title>
+    <link rel="stylesheet" href="/static/css/style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Blog Review</h1>
+      <div class="search-container">
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="블로그 URL을 입력하세요"
+        />
+        <button id="searchButton">검색</button>
+      </div>
+      <div class="results-container">
+        <h2>검색 결과</h2>
+        <div id="searchResults" class="search-results">
+          <!-- 검색 결과가 여기에 표시됩니다 -->
+          <p class="no-results">검색 결과가 여기에 표시됩니다.</p>
+        </div>
+      </div>
+    </div>
+    <script src="/static/js/main.js"></script>
+  </body>
+</html>
