@@ -52,7 +52,7 @@ blog_review/
 - **static/**: 정적 파일(프론트엔드 JS, CSS, 이미지 등)이 위치합니다.
   - **js/**: 바닐라 JS 파일이 위치합니다.
   - **css/**: CSS 파일이 위치합니다.
-  - **images/**: 이미지 파일이 위치합니다.
+  - **index.html**: HTML 파일입니다.  
 
 - **tests/**: 테스트 코드가 위치합니다.
 
@@ -115,12 +115,6 @@ curl -X GET "http://localhost:8000/api/v1/blog/search?query=리뷰&display=10&st
 - `display`: 표시할 결과 개수 (1~100, 기본값: 10)
 - `start`: 검색 시작 위치 (1~1000, 기본값: 1)
 - `sort`: 정렬 방식 (sim: 정확도순, date: 날짜순, 기본값: sim)
-
-### 헬스체크
-
-```bash
-curl -X GET "http://localhost:8000/api/v1/blog/health"
-```
 
 ## 테스트
 
