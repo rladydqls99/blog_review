@@ -13,7 +13,7 @@ async def test_blog_search():
     """블로그 검색 API 테스트"""
     base_url = "http://localhost:8000"
 
-    test_params = {"query": "맛집 리뷰", "display": 5, "start": 1, "sort": "sim"}
+    test_params = {"query": "대전 공주칼국수", "display": 5, "start": 1, "sort": "sim"}
 
     try:
         async with httpx.AsyncClient() as client:

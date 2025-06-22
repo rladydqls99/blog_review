@@ -1,8 +1,8 @@
 """
 네이버 블로그 검색 API 서비스
 
-이 모듈은 네이버 Open API를 사용하여 블로그 검색을 수행합니다.
-XML 응답을 파싱하여 구조화된 데이터로 변환하는 기능을 제공합니다.
+이 모듈은 네이버 Open API를 사용하여 블로그 검색을 수행
+JSON 응답을 파싱하여 구조화된 데이터로 변환하는 기능을 제공
 """
 
 import httpx
@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     """
     환경변수 설정을 관리하는 클래스
 
-    .env 파일에서 네이버 API 인증 정보를 로드합니다.
+    .env 파일에서 네이버 API 인증 정보를 자동으로 로드
     """
 
     naver_client_id: str
@@ -32,10 +32,10 @@ class NaverBlogService:
     """
     네이버 블로그 검색 API를 호출하는 서비스 클래스
 
-    이 클래스는 다음과 같은 기능을 제공합니다:
+    이 클래스는 다음과 같은 기능을 제공
     1. 네이버 API 인증 헤더 설정
     2. HTTP 요청 수행
-    3. XML 응답 파싱
+    3. JSON 응답 파싱
     4. HTML 태그 제거
     """
 
@@ -43,9 +43,9 @@ class NaverBlogService:
         """
         서비스 초기화
 
-        환경변수에서 네이버 API 인증 정보를 로드합니다.
+        환경변수에서 네이버 API 인증 정보를 로드
         """
-        self.settings = Settings()
+        self.settings = Settings()  # 환경변수에서 네이버 API 인증 정보를 로드
         self.base_url = "https://openapi.naver.com/v1/search/blog.json"
 
         # API 인증 헤더 설정

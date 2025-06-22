@@ -35,7 +35,11 @@ naver_service = NaverBlogService()
 )
 async def search_blogs(
     query: str = Query(
-        ..., description="검색어", min_length=1, max_length=255, example="리뷰"
+        ...,  # 이것은 "필수 파라미터"를 의미 (없으면 422 에러 발생)
+        description="검색어",
+        min_length=1,
+        max_length=50,
+        example="대전 공주칼국수",
     ),
     display: int = Query(
         default=10,
