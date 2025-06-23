@@ -41,22 +41,6 @@ async def search_blogs(
         max_length=50,
         example="대전 공주칼국수",
     ),
-    display: int = Query(
-        default=10,
-        description="한 번에 표시할 검색 결과 개수 (1~100)",
-        ge=1,
-        le=100,
-        example=10,
-    ),
-    start: int = Query(
-        default=1, description="검색 시작 위치 (1~1000)", ge=1, le=1000, example=1
-    ),
-    sort: str = Query(
-        default="sim",
-        description="정렬 옵션 (sim: 정확도순, date: 날짜순)",
-        regex="^(sim|date)$",
-        example="sim",
-    ),
 ) -> NaverBlogSearchResponse:
     """
     네이버 블로그 검색을 수행하는 API 엔드포인트
@@ -80,12 +64,7 @@ async def search_blogs(
     """
     try:
         # 요청 파라미터 검증
-        search_request = BlogSearchRequest(
-            query=query,
-            display=display,
-            start=start,
-            sort=sort,
-        )
+        search_request = BlogSearchRequest(query=query)
 
         # 네이버 API 호출
         result = await naver_service.search_blogs(search_request)

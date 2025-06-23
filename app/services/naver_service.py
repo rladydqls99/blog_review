@@ -94,9 +94,9 @@ class NaverBlogService:
         # 쿼리 파라미터 구성
         params = {
             "query": search_params.query,
-            "display": search_params.display,
-            "start": search_params.start,
-            "sort": search_params.sort,
+            "display": 100,
+            "start": 1,
+            "sort": "sim",
         }
 
         try:
