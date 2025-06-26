@@ -42,6 +42,8 @@ project/
 │   ├── services/        # Business logic
 │   ├── database/        # Database configuration
 │   └── utils/           # Utility functions
+│── crawler/             # crawler logic
+│── static/              # html, js, css 
 ├── tests/
 └── requirements.txt
 ```
