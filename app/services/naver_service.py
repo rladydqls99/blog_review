@@ -18,7 +18,7 @@ from app.models.naver_models import (
     BlogItem,
     NaverBlogCrawledResponse,
 )
-from crawler.naver_blog_crawler import NaverBlogCrawler
+from crawler import NaverBlogCrawler
 
 logger = logging.getLogger(__name__)
 

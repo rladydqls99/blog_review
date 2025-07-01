@@ -69,7 +69,6 @@ async def search_blogs(
 
         # 네이버 API 호출
         result = await naver_service.search_and_crawl_blogs(search_request)
-        print(result, "result")
 
         return result
 
