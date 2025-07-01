@@ -9,8 +9,8 @@ from selenium.webdriver.common.by import By
 from typing import List
 import logging
 
-from .drivers.driver_manager import DriverManager
-from .utils.wait_conditions import WaitConditions
+from drivers.driver_manager import DriverManager
+from utils.wait_conditions import WaitConditions
 
 logger = logging.getLogger(__name__)
 

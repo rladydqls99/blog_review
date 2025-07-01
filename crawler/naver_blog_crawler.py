@@ -10,7 +10,7 @@ from typing import Dict, Any
 import logging
 import time
 
-from .selenium_crawler import SeleniumCrawler
+from selenium_crawler import SeleniumCrawler
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +62,7 @@ class NaverBlogCrawler(SeleniumCrawler):
                 "content": self._extract_content(),
                 "author": self._extract_author(),
                 "date": self._extract_date(),
+                "address": self._extract_address(),
                 "url": url,
                 "iframe_used": iframe_switched,
             }
@@ -164,6 +165,7 @@ class NaverBlogCrawler(SeleniumCrawler):
         """블로그 작성자 추출"""
         author_selectors = [
             "//span[contains(@class, 'author')]",
+            "//span[contains(@class, 'nick')]",
             "//div[contains(@class, 'blog-name')]",
             "//a[contains(@class, 'blogger')]",
         ]
@@ -181,6 +183,7 @@ class NaverBlogCrawler(SeleniumCrawler):
         """작성일 추출"""
         date_selectors = [
             "//span[contains(@class, 'date')]",
+            "//span[contains(@class, 'se_publishDate')]",
             "//div[contains(@class, 'post-date')]",
             "//time",
         ]
@@ -192,6 +195,23 @@ class NaverBlogCrawler(SeleniumCrawler):
                 if date:
                     return date
 
+        return ""
+
+    def _extract_address(self) -> str:
+        """주소 추출"""
+        address_selectors = [
+            "//p[contains(@class, 'se-map-address')]",
+            "//span[contains(@class, 'se-map-address')]",
+            "//div[contains(@class, 'se-map-address')]",
+            "//span[contains(@class, 'se-map-address')]",
+        ]
+
+        for selector in address_selectors:
+            element = self.find_element_safe(By.XPATH, selector, timeout=2)
+            if element:
+                address = self.extract_text(element)
+                if address:
+                    return address
         return ""
 
 
@@ -209,6 +229,7 @@ def main():
             print(f"제목: {result['title']}")
             print(f"작성자: {result['author']}")
             print(f"작성일: {result['date']}")
+            print(f"주소: {result['address']}")
             print(f"내용 길이: {len(result['content'])}자")
             print(f"내용 미리보기: {result['content'][:200]}...")
 
