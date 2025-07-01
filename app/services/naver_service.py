@@ -7,11 +7,20 @@ JSON 응답을 파싱하여 구조화된 데이터로 변환하는 기능을 제
 
 import httpx
 import re
+import logging
 from fastapi import HTTPException
 from pydantic_settings import BaseSettings
-from typing import Dict, Any
+from typing import Dict, Any, List
 
-from app.models.naver_models import NaverBlogSearchResponse, BlogSearchRequest, BlogItem
+from app.models.naver_models import (
+    NaverBlogSearchResponse,
+    BlogSearchRequest,
+    BlogItem,
+    NaverBlogCrawledResponse,
+)
+from crawler.naver_blog_crawler import NaverBlogCrawler
+
+logger = logging.getLogger(__name__)
 
 
 class Settings(BaseSettings):
@@ -76,6 +85,50 @@ class NaverBlogService:
 
         return clean_text.strip()
 
+    async def search_and_crawl_blogs(
+        self, search_params: BlogSearchRequest
+    ) -> List[NaverBlogCrawledResponse]:
+        """
+        블로그 검색 후, url을 바탕으로 상세 내용을 추출하는 메서드
+
+        Args:
+            search_params: 검색 파라미터 (쿼리, 표시 개수, 시작 위치, 정렬)
+
+        Returns:
+            블로그 검색 결과
+
+        Raises:
+            HTTPException: API 호출 실패 시
+        """
+
+        search_result = await self.search_blogs(search_params)
+
+        with NaverBlogCrawler(headless=True) as crawler:
+            crawled_data_list = []
+            for item in search_result.items:
+                try:
+                    # 각 블로그 링크를 크롤링
+                    crawled_data = crawler.get_blog_content(item.link)
+
+                    # 크롤링 결과를 item에 추가
+                    if "error" not in crawled_data:
+                        crawled_response = NaverBlogCrawledResponse(
+                            title=crawled_data.get("title", ""),
+                            author=crawled_data.get("author", ""),
+                            date=crawled_data.get("date", ""),
+                            address=crawled_data.get("address", ""),
+                            content=crawled_data.get("content", ""),
+                            url=crawled_data.get("url", ""),
+                            iframe_used=crawled_data.get("iframe_used", False),
+                        )
+                        crawled_data_list.append(crawled_response)
+
+                except Exception as e:
+                    logger.error(f"블로그 크롤링 실패 ({item.link}): {str(e)}")
+                    continue
+
+        return crawled_data_list
+
     async def search_blogs(
         self, search_params: BlogSearchRequest
     ) -> NaverBlogSearchResponse:
@@ -128,7 +181,15 @@ class NaverBlogService:
                 json_data = response.json()
 
                 # 응답 데이터를 모델로 변환
-                return self._parse_response(json_data)
+                result = self._parse_response(json_data)
+
+                # 최신 날짜 순으로 정렬
+                result.items.sort(key=lambda x: x.post_date, reverse=True)
+
+                # 열 개 추출
+                result.items = result.items[:2]
+
+                return result
 
         except httpx.TimeoutException:
             raise HTTPException(status_code=504, detail="Naver API request timeout")

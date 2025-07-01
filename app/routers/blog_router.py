@@ -6,11 +6,12 @@
 """
 
 from fastapi import APIRouter, HTTPException, Query
+from typing import List
 
 from app.services.naver_service import NaverBlogService
 from app.models.naver_models import (
-    NaverBlogSearchResponse,
     BlogSearchRequest,
+    NaverBlogCrawledResponse,
 )
 
 # 라우터 인스턴스 생성
@@ -29,7 +30,7 @@ naver_service = NaverBlogService()
 
 @router.get(
     "/search",
-    response_model=NaverBlogSearchResponse,
+    response_model=List[NaverBlogCrawledResponse],
     summary="블로그 검색",
     description="네이버 블로그 검색 API를 사용하여 블로그 포스트를 검색합니다.",
 )
@@ -41,7 +42,7 @@ async def search_blogs(
         max_length=50,
         example="대전 공주칼국수",
     ),
-) -> NaverBlogSearchResponse:
+) -> List[NaverBlogCrawledResponse]:
     """
     네이버 블로그 검색을 수행하는 API 엔드포인트
 
@@ -57,7 +58,7 @@ async def search_blogs(
         sort: 정렬 방식 (기본값: sim)
 
     Returns:
-        블로그 검색 결과 (제목, 링크, 설명, 블로그명 등)
+        크롤링된 블로그 포스트 목록 (제목, 작성자, 날짜, 주소, 내용 등)
 
     Raises:
         HTTPException: API 호출 실패 또는 잘못된 파라미터
@@ -67,7 +68,8 @@ async def search_blogs(
         search_request = BlogSearchRequest(query=query)
 
         # 네이버 API 호출
-        result = await naver_service.search_blogs(search_request)
+        result = await naver_service.search_and_crawl_blogs(search_request)
+        print(result, "result")
 
         return result
 

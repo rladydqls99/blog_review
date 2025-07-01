@@ -10,7 +10,7 @@ from typing import Dict, Any
 import logging
 import time
 
-from selenium_crawler import SeleniumCrawler
+from .selenium_crawler import SeleniumCrawler
 
 logger = logging.getLogger(__name__)
 
@@ -213,27 +213,3 @@ class NaverBlogCrawler(SeleniumCrawler):
                 if address:
                     return address
         return ""
-
-
-def main():
-    """크롤러 사용 예시"""
-
-    # 컨텍스트 매니저를 사용한 안전한 크롤링
-    with NaverBlogCrawler(headless=False) as crawler:
-        url = "https://blog.naver.com/yjjuuuu/223868908998"
-        result = crawler.get_blog_content(url)
-
-        if "error" in result:
-            print(f"크롤링 실패: {result['error']}")
-        else:
-            print(f"제목: {result['title']}")
-            print(f"작성자: {result['author']}")
-            print(f"작성일: {result['date']}")
-            print(f"주소: {result['address']}")
-            print(f"내용 길이: {len(result['content'])}자")
-            print(f"내용 미리보기: {result['content'][:200]}...")
-
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    main()

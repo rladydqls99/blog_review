@@ -41,6 +41,20 @@ class NaverBlogSearchResponse(BaseModel):
     )
 
 
+class NaverBlogCrawledResponse(BaseModel):
+    """
+    네이버 블로그 크롤링 결과를 나타내는 모델
+    """
+
+    title: str = Field(..., description="블로그 포스트 제목")
+    author: str = Field(..., description="블로그 포스트 작성자")
+    date: str = Field(..., description="블로그 포스트 작성일")
+    address: str = Field(..., description="식당 주소")
+    content: str = Field(..., description="식당 소개")
+    url: str = Field(..., description="블로그 포스트 URL")
+    iframe_used: bool = Field(..., description="iframe 사용 여부")
+
+
 class BlogSearchRequest(BaseModel):
     """
     블로그 검색 요청 파라미터를 정의하는 모델
