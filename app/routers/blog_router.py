@@ -30,7 +30,7 @@ naver_service = NaverBlogService()
 
 @router.get(
     "/search",
-    response_model=List[NaverBlogCrawledResponse],
+    response_model=str,
     summary="블로그 검색",
     description="네이버 블로그 검색 API를 사용하여 블로그 포스트를 검색합니다.",
 )
@@ -42,7 +42,7 @@ async def search_blogs(
         max_length=50,
         example="대전 공주칼국수",
     ),
-) -> List[NaverBlogCrawledResponse]:
+) -> str:
     """
     네이버 블로그 검색을 수행하는 API 엔드포인트
 
@@ -69,6 +69,8 @@ async def search_blogs(
 
         # 네이버 API 호출
         result = await naver_service.search_and_crawl_blogs(search_request)
+        print(type(result))
+        print("open ai의 답변 ################## ", result)
 
         return result
 

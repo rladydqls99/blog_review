@@ -19,13 +19,15 @@ from app.models.naver_models import (
     NaverBlogCrawledResponse,
 )
 from crawler import NaverBlogCrawler
+from app.services.ai_service import OpenAIService
 
 logger = logging.getLogger(__name__)
+ai_service = OpenAIService()
 
 
-class Settings(BaseSettings):
+class NaverSettings(BaseSettings):
     """
-    환경변수 설정을 관리하는 클래스
+    네이버 API 관련 환경변수 설정을 관리하는 클래스
 
     .env 파일에서 네이버 API 인증 정보를 자동으로 로드
     """
@@ -35,6 +37,7 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = ".env"
+        extra = "ignore"  # 정의되지 않은 추가 환경변수 무시
 
 
 class NaverBlogService:
@@ -54,7 +57,7 @@ class NaverBlogService:
 
         환경변수에서 네이버 API 인증 정보를 로드
         """
-        self.settings = Settings()  # 환경변수에서 네이버 API 인증 정보를 로드
+        self.settings = NaverSettings()  # 환경변수에서 네이버 API 인증 정보를 로드
         self.base_url = "https://openapi.naver.com/v1/search/blog.json"
 
         # API 인증 헤더 설정
@@ -127,7 +130,9 @@ class NaverBlogService:
                     logger.error(f"블로그 크롤링 실패 ({item.link}): {str(e)}")
                     continue
 
-        return crawled_data_list
+        result = ai_service.generate_response(crawled_data_list)
+
+        return result
 
     async def search_blogs(
         self, search_params: BlogSearchRequest
