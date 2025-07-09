@@ -1,82 +1,74 @@
 """
-블로그 검색 API 라우터
+블로그 리뷰 분석 API 라우터
 
-이 모듈은 네이버 블로그 검색 관련 API 엔드포인트를 정의합니다.
-클라이언트가 블로그 검색을 요청할 수 있는 REST API를 제공합니다.
+이 모듈은 블로그 리뷰 분석 관련 API 엔드포인트를 정의합니다.
 """
 
-from fastapi import APIRouter, HTTPException, Query
-from typing import List
+from typing import Annotated
 
-from app.services.naver_service import NaverBlogService
-from app.models.naver_models import (
-    BlogSearchRequest,
-    NaverBlogCrawledResponse,
-)
+from fastapi import APIRouter, Depends, HTTPException, Query
+
+from app.dependencies import get_blog_review_service
+from app.services.blog_review_service import BlogReviewService
 
 # 라우터 인스턴스 생성
 router = APIRouter(
     prefix="/api/blog",
-    tags=["블로그 검색"],
+    tags=["블로그 리뷰 분석"],
     responses={
         404: {"description": "Not found"},
         500: {"description": "Internal server error"},
     },
 )
 
-# 네이버 블로그 서비스 인스턴스
-naver_service = NaverBlogService()
-
 
 @router.get(
     "/search",
     response_model=str,
-    summary="블로그 검색",
-    description="네이버 블로그 검색 API를 사용하여 블로그 포스트를 검색합니다.",
+    summary="블로그 리뷰 분석",
+    description="키워드로 블로그를 검색하고, 최신 포스트를 분석하여 리뷰를 요약합니다.",
 )
-async def search_blogs(
+async def search_blogs_and_analyze(
+    service: Annotated[BlogReviewService, Depends(get_blog_review_service)],
     query: str = Query(
-        ...,  # 이것은 "필수 파라미터"를 의미 (없으면 422 에러 발생)
-        description="검색어",
+        ...,
+        description="분석할 검색어 (예: '대전 맛집')",
         min_length=1,
         max_length=50,
         example="대전 공주칼국수",
     ),
 ) -> str:
     """
-    네이버 블로그 검색을 수행하는 API 엔드포인트
+    블로그 검색, 크롤링, AI 분석을 수행하는 API 엔드포인트입니다.
 
-    이 엔드포인트는 다음과 같은 기능을 제공합니다:
-    - 네이버 블로그 검색 API 호출
-    - 검색 결과 파싱 및 정제
-    - 구조화된 JSON 응답 반환
+    - 키워드를 받아 네이버 블로그를 검색합니다.
+    - 검색된 블로그 중 최신 포스트 2개를 크롤링합니다.
+    - 크롤링된 내용을 바탕으로 AI가 리뷰를 분석하고 요약합니다.
 
     Args:
-        query: 검색할 키워드
-        display: 한 번에 표시할 결과 개수 (기본값: 10)
-        start: 검색 시작 위치 (기본값: 1)
-        sort: 정렬 방식 (기본값: sim)
+        service: 주입된 BlogReviewService 인스턴스
+        query: 검색 및 분석을 위한 키워드
 
     Returns:
-        크롤링된 블로그 포스트 목록 (제목, 작성자, 날짜, 주소, 내용 등)
+        AI가 생성한 블로그 리뷰 분석 결과 (문자열)
 
     Raises:
-        HTTPException: API 호출 실패 또는 잘못된 파라미터
+        HTTPException: 처리 중 예상치 못한 오류 발생 시
     """
     try:
-        # 요청 파라미터 검증
-        search_request = BlogSearchRequest(query=query)
+        # 서비스 레이어에 비즈니스 로직 처리를 위임합니다.
+        result = await service.analyze_reviews(query=query)
 
-        # 네이버 API 호출
-        result = await naver_service.search_and_crawl_blogs(search_request)
-        print(type(result))
-        print("open ai의 답변 ################## ", result)
+        # 디버깅용 로그 (결과 확인 시 사용)
+        # print("최종 AI 답변:", result)
 
         return result
 
-    except ValueError as e:
-        # 파라미터 검증 실패
-        raise HTTPException(status_code=400, detail=f"Invalid parameters: {str(e)}")
+    except HTTPException as e:
+        # 서비스 레이어에서 발생한 HTTP 예외는 그대로 다시 발생시킵니다.
+        raise e
     except Exception as e:
-        # 예상치 못한 오류
+        # 그 외 예상치 못한 오류를 처리합니다.
+        # 실제 운영 환경에서는 에러 로깅이 중요합니다.
+        # logger.error(f"An unexpected error occurred: {e}")
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")

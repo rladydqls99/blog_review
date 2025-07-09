@@ -23,6 +23,45 @@ class NaverBlogCrawler(SeleniumCrawler):
     고려한 전문적인 크롤링 기능 제공
     """
 
+    # 선택자들을 상수로 관리하여 가독성 및 유지보수성 향상
+    IFRAME_SELECTORS = (
+        "mainFrame",  # ID로 찾기
+        "//iframe[@id='mainFrame']",  # XPath로 찾기
+        "iframe[src*='blog.naver.com']",  # CSS 선택자
+    )
+    TITLE_SELECTORS = (
+        "//h1[contains(@class, 'title')]",
+        "//h2[contains(@class, 'title')]",
+        "//div[contains(@class, 'se-title')]",
+        "//span[contains(@class, 'title')]",
+        "//*[@class='se-title-text']",
+        "//title",
+    )
+    CONTENT_SELECTORS = (
+        "//div[contains(@class, 'se-main-container')]",
+        "//div[contains(@class, 'post-view')]",
+        "//div[contains(@class, 'blog-content')]",
+        "//div[@id='post-view']",
+        "//div[contains(@class, 'se-component')]",
+    )
+    AUTHOR_SELECTORS = (
+        "//span[contains(@class, 'author')]",
+        "//span[contains(@class, 'nick')]",
+        "//div[contains(@class, 'blog-name')]",
+        "//a[contains(@class, 'blogger')]",
+    )
+    DATE_SELECTORS = (
+        "//span[contains(@class, 'date')]",
+        "//span[contains(@class, 'se_publishDate')]",
+        "//div[contains(@class, 'post-date')]",
+        "//time",
+    )
+    ADDRESS_SELECTORS = (
+        "//p[contains(@class, 'se-map-address')]",
+        "//span[contains(@class, 'se-map-address')]",
+        "//div[contains(@class, 'se-map-address')]",
+    )
+
     def __init__(self, headless: bool = False):
         """
         네이버 블로그 크롤러 초기화
@@ -45,12 +84,11 @@ class NaverBlogCrawler(SeleniumCrawler):
         if not self.get_page(url):
             return {"error": "페이지 로딩 실패"}
 
-        # 네이버 블로그 컨텐츠 로딩 대기
+        # 네이버 블로그 컨텐츠 로딩을 명시적으로 대기합니다.
+        # time.sleep()을 제거하여 코드의 의도를 명확히 합니다.
         if not self.wait_conditions.wait_for_naver_blog_content(self.driver):
             logger.warning("네이버 블로그 컨텐츠 로딩 대기 실패")
-
-        # 추가 대기 (네이버 블로그는 로딩이 오래 걸림)
-        time.sleep(3)
+            # 실패하더라도 크롤링을 시도해볼 수 있으므로 계속 진행
 
         try:
             # iframe으로 전환 시도
@@ -58,11 +96,11 @@ class NaverBlogCrawler(SeleniumCrawler):
 
             # 블로그 정보 추출
             blog_data = {
-                "title": self._extract_title(),
-                "content": self._extract_content(),
-                "author": self._extract_author(),
-                "date": self._extract_date(),
-                "address": self._extract_address(),
+                "title": self._extract_info(self.TITLE_SELECTORS),
+                "content": self._extract_info(self.CONTENT_SELECTORS, min_length=20),
+                "author": self._extract_info(self.AUTHOR_SELECTORS),
+                "date": self._extract_info(self.DATE_SELECTORS),
+                "address": self._extract_info(self.ADDRESS_SELECTORS),
                 "url": url,
                 "iframe_used": iframe_switched,
             }
@@ -85,27 +123,18 @@ class NaverBlogCrawler(SeleniumCrawler):
             iframe 전환 성공 여부
         """
         try:
-            # 가능한 iframe 선택자들
-            iframe_selectors = [
-                "mainFrame",  # ID로 찾기
-                "//iframe[@id='mainFrame']",  # XPath로 찾기
-                "iframe[src*='blog.naver.com']",  # CSS 선택자
-            ]
-
-            for selector in iframe_selectors:
+            for selector in self.IFRAME_SELECTORS:
                 try:
+                    by = By.ID
                     if selector.startswith("//"):
-                        iframe = self.find_element_safe(By.XPATH, selector, timeout=5)
+                        by = By.XPATH
                     elif selector.startswith("iframe"):
-                        iframe = self.find_element_safe(
-                            By.CSS_SELECTOR, selector, timeout=5
-                        )
-                    else:
-                        iframe = self.find_element_safe(By.ID, selector, timeout=5)
+                        by = By.CSS_SELECTOR
 
+                    iframe = self.find_element_safe(by, selector, timeout=5)
                     if iframe:
                         self.driver.switch_to.frame(iframe)
-                        logger.info("iframe으로 전환 성공")
+                        logger.info(f"iframe으로 전환 성공: {selector}")
                         return True
                 except Exception as e:
                     logger.debug(f"iframe 전환 시도 실패 ({selector}): {str(e)}")
@@ -118,98 +147,25 @@ class NaverBlogCrawler(SeleniumCrawler):
             logger.error(f"iframe 전환 중 오류: {str(e)}")
             return False
 
-    def _extract_title(self) -> str:
-        """블로그 포스트 제목 추출"""
-        title_selectors = [
-            "//h1[contains(@class, 'title')]",
-            "//h2[contains(@class, 'title')]",
-            "//div[contains(@class, 'se-title')]",
-            "//span[contains(@class, 'title')]",
-            "//*[@class='se-title-text']",
-            "//title",
-        ]
+    def _extract_info(self, selectors: tuple, min_length: int = 1) -> str:
+        """
+        주어진 선택자 리스트를 사용하여 정보를 추출하는 범용 메서드
 
-        for selector in title_selectors:
-            element = self.find_element_safe(By.XPATH, selector, timeout=3)
-            if element:
-                title = self.extract_text(element)
-                if title and len(title.strip()) > 0:
-                    logger.debug(f"제목 추출 성공: {title[:50]}...")
-                    return title
+        Args:
+            selectors: 시도할 선택자들의 튜플
+            min_length: 유효한 텍스트로 간주할 최소 길이
 
-        logger.warning("제목을 찾을 수 없습니다")
-        return ""
-
-    def _extract_content(self) -> str:
-        """블로그 포스트 본문 추출"""
-        content_selectors = [
-            "//div[contains(@class, 'se-main-container')]",
-            "//div[contains(@class, 'post-view')]",
-            "//div[contains(@class, 'blog-content')]",
-            "//div[@id='post-view']",
-            "//div[contains(@class, 'se-component')]",
-        ]
-
-        for selector in content_selectors:
-            element = self.find_element_safe(By.XPATH, selector, timeout=3)
-            if element:
-                content = self.extract_text(element)
-                if content and len(content.strip()) > 20:  # 최소 길이 확인
-                    logger.debug(f"본문 추출 성공: {len(content)}자")
-                    return content
-
-        logger.warning("본문을 찾을 수 없습니다")
-        return ""
-
-    def _extract_author(self) -> str:
-        """블로그 작성자 추출"""
-        author_selectors = [
-            "//span[contains(@class, 'author')]",
-            "//span[contains(@class, 'nick')]",
-            "//div[contains(@class, 'blog-name')]",
-            "//a[contains(@class, 'blogger')]",
-        ]
-
-        for selector in author_selectors:
+        Returns:
+            추출된 텍스트 또는 빈 문자열
+        """
+        for selector in selectors:
+            # 네이버 블로그는 대부분의 콘텐츠가 XPATH로 식별 가능
             element = self.find_element_safe(By.XPATH, selector, timeout=2)
             if element:
-                author = self.extract_text(element)
-                if author:
-                    return author
+                text = self.extract_text(element)
+                if text and len(text.strip()) >= min_length:
+                    logger.debug(f"정보 추출 성공: {selector}")
+                    return text
 
-        return ""
-
-    def _extract_date(self) -> str:
-        """작성일 추출"""
-        date_selectors = [
-            "//span[contains(@class, 'date')]",
-            "//span[contains(@class, 'se_publishDate')]",
-            "//div[contains(@class, 'post-date')]",
-            "//time",
-        ]
-
-        for selector in date_selectors:
-            element = self.find_element_safe(By.XPATH, selector, timeout=2)
-            if element:
-                date = self.extract_text(element)
-                if date:
-                    return date
-
-        return ""
-
-    def _extract_address(self) -> str:
-        """주소 추출"""
-        address_selectors = [
-            "//p[contains(@class, 'se-map-address')]",
-            "//span[contains(@class, 'se-map-address')]",
-            "//div[contains(@class, 'se-map-address')]",
-            "//span[contains(@class, 'se-map-address')]",
-        ]
-
-        for selector in address_selectors:
-            element = self.find_element_safe(By.XPATH, selector, timeout=2)
-            if element:
-                address = self.extract_text(element)
-                if address:
-                    return address
+        logger.warning(f"정보를 찾을 수 없습니다. 시도한 선택자: {selectors}")
         return ""
