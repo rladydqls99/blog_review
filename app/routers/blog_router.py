@@ -38,23 +38,6 @@ async def search_blogs_and_analyze(
         example="대전 공주칼국수",
     ),
 ) -> str:
-    """
-    블로그 검색, 크롤링, AI 분석을 수행하는 API 엔드포인트입니다.
-
-    - 키워드를 받아 네이버 블로그를 검색합니다.
-    - 검색된 블로그 중 최신 포스트 2개를 크롤링합니다.
-    - 크롤링된 내용을 바탕으로 AI가 리뷰를 분석하고 요약합니다.
-
-    Args:
-        service: 주입된 BlogReviewService 인스턴스
-        query: 검색 및 분석을 위한 키워드
-
-    Returns:
-        AI가 생성한 블로그 리뷰 분석 결과 (문자열)
-
-    Raises:
-        HTTPException: 처리 중 예상치 못한 오류 발생 시
-    """
     try:
         # 서비스 레이어에 비즈니스 로직 처리를 위임합니다.
         result = await service.analyze_reviews(query=query)

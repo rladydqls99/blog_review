@@ -1,10 +1,3 @@
-"""
-네이버 검색 API 서비스
-
-이 모듈은 네이버 Open API를 사용하여 블로그 검색을 수행하고
-JSON 응답을 파싱하여 구조화된 데이터로 변환하는 기능을 제공합니다.
-"""
-
 import httpx
 import re
 import logging
@@ -22,17 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class NaverApiService:
-    """
-    네이버 검색 API를 호출하는 서비스 클래스입니다.
-    오직 네이버 API 연동 및 결과 파싱 책임만 가집니다.
-    """
-
     def __init__(self, settings: Settings):
-        """
-        서비스 초기화
-
-        주입된 설정 객체를 사용합니다.
-        """
         self.settings = settings
         self.base_url = "https://openapi.naver.com/v1/search/blog.json"
         self.headers = {
@@ -42,7 +25,6 @@ class NaverApiService:
         }
 
     def _remove_html_tags(self, text: str) -> str:
-        """HTML 태그를 제거하는 헬퍼 메서드"""
         # HTML 태그 제거 정규식 패턴
         clean_text = re.sub(r"<[^>]+>", "", text)
         # HTML 엔티티 디코딩
@@ -57,18 +39,6 @@ class NaverApiService:
     async def search_blogs(
         self, search_params: BlogSearchRequest
     ) -> NaverBlogSearchResponse:
-        """
-        네이버 블로그 검색을 수행하는 메인 메서드
-
-        Args:
-            search_params: 검색 파라미터 (쿼리 등)
-
-        Returns:
-            블로그 검색 결과
-
-        Raises:
-            HTTPException: API 호출 실패 시
-        """
         params = {
             "query": search_params.query,
             "display": 100,  # 우선 100개를 최대로 가져옵니다.
@@ -103,7 +73,6 @@ class NaverApiService:
             raise HTTPException(status_code=502, detail=f"Network error: {str(e)}")
 
     def _parse_response(self, json_data: Dict[str, Any]) -> NaverBlogSearchResponse:
-        """네이버 API JSON 응답을 파싱하여 모델로 변환합니다."""
         blog_items = [
             BlogItem(
                 title=self._remove_html_tags(item.get("title", "")),

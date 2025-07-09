@@ -1,28 +1,13 @@
-"""
-네이버 블로그 전용 크롤링 모듈
-
-네이버 블로그의 특수한 구조(iframe 등)를 고려한
-전문적인 크롤링 기능을 제공
-"""
-
 from selenium.webdriver.common.by import By
 from typing import Dict, Any
 import logging
-import time
 
-from .selenium_crawler import SeleniumCrawler
+from crawler.selenium_crawler import SeleniumCrawler
 
 logger = logging.getLogger(__name__)
 
 
 class NaverBlogCrawler(SeleniumCrawler):
-    """
-    네이버 블로그 전용 크롤러
-
-    네이버 블로그의 iframe 구조와 특수한 요소들을
-    고려한 전문적인 크롤링 기능 제공
-    """
-
     # 선택자들을 상수로 관리하여 가독성 및 유지보수성 향상
     IFRAME_SELECTORS = (
         "mainFrame",  # ID로 찾기
@@ -63,32 +48,15 @@ class NaverBlogCrawler(SeleniumCrawler):
     )
 
     def __init__(self, headless: bool = False):
-        """
-        네이버 블로그 크롤러 초기화
-
-        Args:
-            headless: 헤드리스 모드 실행 여부
-        """
         super().__init__(headless=headless, timeout=15)
 
     def get_blog_content(self, url: str) -> Dict[str, Any]:
-        """
-        네이버 블로그 포스트의 내용을 추출
-
-        Args:
-            url: 네이버 블로그 포스트 URL
-
-        Returns:
-            블로그 포스트 정보 딕셔너리
-        """
         if not self.get_page(url):
             return {"error": "페이지 로딩 실패"}
 
         # 네이버 블로그 컨텐츠 로딩을 명시적으로 대기합니다.
-        # time.sleep()을 제거하여 코드의 의도를 명확히 합니다.
         if not self.wait_conditions.wait_for_naver_blog_content(self.driver):
             logger.warning("네이버 블로그 컨텐츠 로딩 대기 실패")
-            # 실패하더라도 크롤링을 시도해볼 수 있으므로 계속 진행
 
         try:
             # iframe으로 전환 시도
@@ -148,16 +116,6 @@ class NaverBlogCrawler(SeleniumCrawler):
             return False
 
     def _extract_info(self, selectors: tuple, min_length: int = 1) -> str:
-        """
-        주어진 선택자 리스트를 사용하여 정보를 추출하는 범용 메서드
-
-        Args:
-            selectors: 시도할 선택자들의 튜플
-            min_length: 유효한 텍스트로 간주할 최소 길이
-
-        Returns:
-            추출된 텍스트 또는 빈 문자열
-        """
         for selector in selectors:
             # 네이버 블로그는 대부분의 콘텐츠가 XPATH로 식별 가능
             element = self.find_element_safe(By.XPATH, selector, timeout=2)
