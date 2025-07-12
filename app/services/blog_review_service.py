@@ -3,6 +3,7 @@
 """
 
 import logging
+import time
 from typing import List
 
 from app.models.naver_models import BlogSearchRequest, NaverBlogCrawledResponse
@@ -35,6 +36,10 @@ class BlogReviewService:
 
         # 3. 선택된 블로그 포스트 크롤링
         crawled_data_list: List[NaverBlogCrawledResponse] = []
+
+        # 크롤링 시간 측정 시작
+        crawling_start_time = time.time()
+
         # 크롤러는 리소스를 사용하므로, 사용할 때마다 생성/종료합니다.
         with NaverBlogCrawler(headless=True) as crawler:
             for item in target_items:
@@ -46,6 +51,14 @@ class BlogReviewService:
                 except Exception as e:
                     logger.error(f"블로그 크롤링 실패 ({item.link}): {str(e)}")
                     continue
+
+        # 크롤링 시간 측정 종료
+        crawling_end_time = time.time()
+        crawling_duration = crawling_end_time - crawling_start_time
+
+        print(
+            f"총 소요시간 {crawling_duration:.2f}초, 성공한 블로그 수: {len(crawled_data_list)}"
+        )
 
         if not crawled_data_list:
             return "분석할 최신 블로그를 찾지 못했습니다. 다른 검색어로 시도해주세요."
