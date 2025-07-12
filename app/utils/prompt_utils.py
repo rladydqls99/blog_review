@@ -32,7 +32,7 @@ def system_prompt() -> str:
 ## 출력 형식
 - 주어진 블로그 리뷰를 종합해서 새로운 블로그를 plain text로 출력(마크다운 형식 사용 금지)
 - 여러 블로그에서 반복적으로 언급되는 메뉴에 대해 초점을 맞춰서 리뷰 제공
-- 마지막에는 몇 개의 리뷰를 분석했는지, 그 중 광고성 리뷰의 비율은 얼마나 되는지 제공(분석이 가능하다면)
+- 마지막에는 몇 개의 리뷰를 분석했는지, 그 중 광고성 리뷰의 비율은 얼마나 되는지 ()안에 제공(분석이 가능하다면)
 
 ## 작성 시 주의사항
 
@@ -62,5 +62,7 @@ def generate_prompt(crawled_data: List[NaverBlogCrawledResponse]) -> str:
         *** 제목: {data.title} ***
         내용: {data.content}
         """
+
+    prompt += f"""참고한 블로그 수: {len(crawled_data)}"""
 
     return prompt
