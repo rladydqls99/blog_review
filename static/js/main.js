@@ -2,6 +2,7 @@ const blogReviewApp = (() => {
   const container = document.querySelector(".container");
   const searchInput = document.getElementById("searchInput");
   const searchButton = document.getElementById("searchButton");
+  const resultText = document.getElementById("resultText");
 
   // textarea 자동 크기 조정 함수
   const autoResizeTextarea = (textarea) => {
@@ -12,15 +13,14 @@ const blogReviewApp = (() => {
   const handleSearch = async () => {
     const searchQuery = searchInput.value.trim();
 
-    // container.classList.add("loading");
-
     if (!searchQuery) {
       alert("검색어를 입력해주세요.");
       return;
     }
 
-    // 로딩 상태 표시
+    container.classList.add("loading");
     searchButton.disabled = true;
+    searchInput.disabled = true;
     searchButton.innerHTML = `
       <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="3" opacity="0.5"/>
@@ -41,14 +41,17 @@ const blogReviewApp = (() => {
       }
 
       const data = await res.json();
-      console.log(data);
+      resultText.innerHTML = data;
+      container.classList.add("success");
 
       // TODO: 검색 결과를 화면에 표시하는 로직 추가
     } catch (error) {
       console.error("검색 중 오류 발생:", error);
       alert("검색 중 오류가 발생했습니다. 다시 시도해주세요.");
     } finally {
-      // 로딩 상태 해제
+      container.classList.remove("loading");
+      searchInput.disabled = false;
+      searchInput.value = "";
       searchButton.disabled = false;
       searchButton.innerHTML = `
         <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
