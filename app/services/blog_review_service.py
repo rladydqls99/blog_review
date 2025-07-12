@@ -3,8 +3,10 @@
 """
 
 import logging
+import asyncio
 import time
 from typing import List
+from concurrent.futures import ThreadPoolExecutor
 
 from app.models.naver_models import BlogSearchRequest, NaverBlogCrawledResponse
 from app.services.ai_service import OpenAIService
@@ -23,6 +25,14 @@ class BlogReviewService:
         self.naver_api_service = naver_api_service
         self.openai_service = openai_service
 
+    def _crawl_single_url(self, url: str) -> dict:
+        try:
+            with NaverBlogCrawler(headless=True) as crawler:
+                return crawler.get_blog_content(url)
+        except Exception as e:
+            logger.error(f"블로그 크롤링 실패 ({url}): {str(e)}")
+            return {"error": f"크롤링 실패: {str(e)}"}
+
     async def analyze_reviews(self, query: str) -> str:
         # 1. 네이버 API를 통해 블로그 검색
         search_request = BlogSearchRequest(query=query)
@@ -34,23 +44,29 @@ class BlogReviewService:
         )
         target_items = sorted_items
 
-        # 3. 선택된 블로그 포스트 크롤링
+        # 3. 멀티스레딩을 사용한 병렬 크롤링
         crawled_data_list: List[NaverBlogCrawledResponse] = []
 
         # 크롤링 시간 측정 시작
         crawling_start_time = time.time()
 
-        # 크롤러는 리소스를 사용하므로, 사용할 때마다 생성/종료합니다.
-        with NaverBlogCrawler(headless=True) as crawler:
-            for item in target_items:
-                try:
-                    crawled_data = crawler.get_blog_content(item.link)
-                    if "error" not in crawled_data:
-                        crawled_response = NaverBlogCrawledResponse(**crawled_data)
-                        crawled_data_list.append(crawled_response)
-                except Exception as e:
-                    logger.error(f"블로그 크롤링 실패 ({item.link}): {str(e)}")
-                    continue
+        # 멀티스레딩을 사용한 병렬 처리
+        # 각 스레드에서 독립적인 WebDriver 인스턴스를 생성
+        loop = asyncio.get_event_loop()
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            # 각 URL에 대해 별도 스레드에서 크롤링 실행
+            tasks = [
+                loop.run_in_executor(executor, self._crawl_single_url, item.link)
+                for item in target_items
+            ]
+            # 모든 작업 완료까지 대기
+            results = await asyncio.gather(*tasks)
+
+            # 성공한 결과만 수집
+            for result in results:
+                if "error" not in result:
+                    crawled_response = NaverBlogCrawledResponse(**result)
+                    crawled_data_list.append(crawled_response)
 
         # 크롤링 시간 측정 종료
         crawling_end_time = time.time()
