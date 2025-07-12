@@ -41,7 +41,7 @@ class NaverApiService:
     ) -> NaverBlogSearchResponse:
         params = {
             "query": search_params.query,
-            "display": 100,  # 우선 100개를 최대로 가져옵니다.
+            "display": 2,  # 우선 100개를 최대로 가져옵니다.
             "start": 1,
             "sort": "sim",  # 정확도 순으로 정렬
         }

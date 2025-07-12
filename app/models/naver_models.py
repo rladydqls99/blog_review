@@ -64,7 +64,7 @@ class BlogSearchRequest(BaseModel):
 
     query: str = Field(..., min_length=1, max_length=255, description="검색어")
     display: int = Field(
-        default=10, ge=1, le=100, description="한 번에 표시할 검색 결과 개수 (1~100)"
+        default=50, ge=1, le=100, description="한 번에 표시할 검색 결과 개수 (1~100)"
     )
     start: int = Field(default=1, ge=1, le=1000, description="검색 시작 위치 (1~1000)")
     sort: str = Field(

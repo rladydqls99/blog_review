@@ -22,7 +22,7 @@ class BlogReviewService:
         self.naver_api_service = naver_api_service
         self.openai_service = openai_service
 
-    async def analyze_reviews(self, query: str, limit: int = 2) -> str:
+    async def analyze_reviews(self, query: str) -> str:
         # 1. 네이버 API를 통해 블로그 검색
         search_request = BlogSearchRequest(query=query)
         search_result = await self.naver_api_service.search_blogs(search_request)
@@ -31,7 +31,7 @@ class BlogReviewService:
         sorted_items = sorted(
             search_result.items, key=lambda x: x.post_date, reverse=True
         )
-        target_items = sorted_items[:limit]
+        target_items = sorted_items
 
         # 3. 선택된 블로그 포스트 크롤링
         crawled_data_list: List[NaverBlogCrawledResponse] = []
