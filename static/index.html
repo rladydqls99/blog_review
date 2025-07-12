@@ -7,21 +7,32 @@
     <link rel="stylesheet" href="/static/css/style.css" />
   </head>
   <body>
-    <div class="container">
-      <h1>Blog Review</h1>
-      <div class="search-container">
-        <input
-          type="text"
-          id="searchInput"
-          placeholder="검색어를 입력해주세요."
-        />
-        <button id="searchButton">검색</button>
+    <div class="container loading">
+      <div class="result-wrapper"></div>
+      <div class="loading-wrapper">
+        <p>블로그 리뷰를 요약중입니다...</p>
       </div>
-      <div class="results-container">
-        <h2>검색 결과</h2>
-        <div id="searchResults" class="search-results">
-          <!-- 검색 결과가 여기에 표시됩니다 -->
-          <p class="no-results">검색 결과가 여기에 표시됩니다.</p>
+
+      <div class="search-container">
+        <div class="search-input-wrapper">
+          <textarea
+            id="searchInput"
+            class="search-input"
+            placeholder="식당명을 입력해주세요..."
+            rows="1"
+          ></textarea>
+          <button class="search-button" id="searchButton">
+            <svg
+              class="search-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z" />
+              <path d="M21 21l-4.35-4.35" />
+            </svg>
+          </button>
         </div>
       </div>
     </div>

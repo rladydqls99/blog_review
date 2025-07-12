@@ -1,78 +1,172 @@
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  font-family: Arial, sans-serif;
+:root {
+  --primary-color: oklch(45.7% 0.24 277.023);
+  --primary-color-foreground: oklch(96.7% 0.003 264.542);
+  --secondary-color: oklch(43.8% 0.218 303.724);
+  --secondary-color-foreground: oklch(96.7% 0.003 264.542);
+  --background-color: oklch(13% 0.028 261.692);
+  --background-color-foreground: oklch(96.7% 0.003 264.542);
 }
 
-h1 {
-  color: #333;
-  text-align: center;
-  margin-bottom: 2rem;
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  margin: 0;
+  padding: 0 20px;
+
+  background: var(--background-color);
+  color: var(--background-color-foreground);
+}
+
+.container {
+  max-width: 800px;
+  min-height: 100vh;
+
+  margin: 0 auto;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: justify-content 3s ease-in-out;
+}
+
+.container.loading {
+  justify-content: flex-end;
+
+  .search-container {
+    margin-bottom: 20px;
+  }
+
+  .loading-wrapper {
+    display: flex;
+  }
+}
+
+.result-wrapper {
+  display: none;
+}
+
+.loading-wrapper {
+  width: 100%;
+
+  flex: 1;
+  display: none;
+  align-items: center;
+  justify-content: center;
+
+  p {
+    font-size: 36px;
+    font-weight: 700;
+
+    background: linear-gradient(
+      to right,
+      var(--primary-color),
+      var(--secondary-color),
+      var(--primary-color)
+    );
+    background-size: 200% 100%;
+    animation: loading-gradient 3s ease infinite;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text;
+  }
 }
 
 .search-container {
+  width: 100%;
+  max-width: 700px;
+  position: relative;
+
+  background: oklch(18% 0.028 261.692);
+  border: 1px solid oklch(25% 0.028 261.692);
+  border-radius: 24px;
+
+  transition: all 0.5s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    border-color: oklch(35% 0.028 261.692);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+
+  &:focus-within {
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.search-input-wrapper {
   display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 2rem;
+  align-items: center;
+  padding: 16px 20px;
+  gap: 12px;
 }
 
-#searchInput {
-  width: 60%;
-  padding: 12px;
-  font-size: 16px;
-  border: 2px solid #ddd;
-  border-radius: 6px;
-  outline: none;
-  transition: border-color 0.3s ease;
-}
-
-#searchInput:focus {
-  border-color: #007bff;
-}
-
-#searchButton {
-  padding: 12px 24px;
-  font-size: 16px;
-  background-color: #007bff;
-  color: white;
+.search-input {
+  flex: 1;
   border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-#searchButton:hover {
-  background-color: #0056b3;
-}
-
-.results-container {
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  padding: 20px;
-  margin-top: 20px;
-}
-
-.results-container h2 {
-  color: #333;
-  margin-bottom: 1rem;
-  font-size: 1.5rem;
-}
-
-.search-results {
-  min-height: 200px;
-}
-
-.no-results {
-  text-align: center;
-  color: #666;
+  outline: none;
+  background: transparent;
+  color: var(--background-color-foreground);
   font-size: 16px;
-  margin-top: 2rem;
+  line-height: 1.5;
+  resize: none;
+  min-height: 24px;
+  max-height: 200px;
+  overflow-y: auto;
+
+  &::placeholder {
+    color: oklch(60% 0.005 264.542);
+  }
 }
 
-p {
-  color: #666;
-  text-align: center;
-  font-size: 18px;
+.search-button {
+  padding: 8px 12px;
+  background-color: var(--primary-color);
+  color: var(--primary-color-foreground);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 60px;
+  justify-content: center;
+
+  &:hover {
+    background-color: var(--primary-color);
+    opacity: 0.8;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    background-color: oklch(35% 0.028 261.692);
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+.search-icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+}
+
+@keyframes loading-gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
